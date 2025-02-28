@@ -8,6 +8,7 @@ __pycache__/
 
 # Database migrations
 alembic/versions/
+alembic.ini
 
 # Node.js-related ignores (Frontend)
 frontend/node_modules/
