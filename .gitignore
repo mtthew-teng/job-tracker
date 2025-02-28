@@ -1,13 +1,32 @@
-# Python
+# Python-related ignores
 venv/
 __pycache__/
 *.pyc
+*.pyo
+*.pyd
 .env
-alembic.ini
 
-# Database
+# Database migrations
 alembic/versions/
-*.sqlite3
 
-# Logs
-*.log
+# Node.js-related ignores (Frontend)
+frontend/node_modules/
+frontend/.pnp/
+frontend/.pnp.js
+frontend/.env
+frontend/.env.local
+frontend/.env.development.local
+frontend/.env.test.local
+frontend/.env.production.local
+
+# Build files
+frontend/build/
+
+# Testing
+frontend/coverage/
+
+# Miscellaneous
+frontend/.DS_Store
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
