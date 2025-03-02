@@ -2,11 +2,13 @@ import React, {useState, useEffect} from "react";
 import AuthGuard from "../components/AuthGuard";
 import LogoutButton from "../components/LogoutButton";
 import AddJobForm from "../components/AddJobForm";
-import { getJobs, deleteJob } from "../services/jobService";
+import { getJobs, deleteJob, updateJob } from "../services/jobService";
 
 function Dashboard() {
   const [jobs, setJobs] = useState([]);
   const [error, setError] = useState(null);
+  const [editingJob, setEditingJob] = useState(null);
+  const [editedJobData, setEditedJobData] = useState({});
   const token = localStorage.getItem("token");
 
   useEffect(() => {
@@ -39,6 +41,26 @@ function Dashboard() {
     }
   };
 
+  const handleEditClick = (job) => {
+    setEditingJob(job.id);
+    setEditedJobData({ ...job });
+  };
+
+  const handleEditChange = (e) => {
+    setEditedJobData({ ...editedJobData, [e.target.name]: e.target.value });
+  };
+
+  const handleEditSubmit = async (e) =>  {
+    e.preventDefault();
+    try {
+      const updatedJob = await updateJob(editingJob, editedJobData, token);
+      setJobs(jobs.map((job) => (job.id === editingJob ? updatedJob : job)));
+      setEditingJob(null);
+    } catch (err) {
+      setError(err.detail || "Failed to update job");
+    }
+  };
+
   return (
     <AuthGuard>
       <div>
@@ -65,14 +87,70 @@ function Dashboard() {
             <tbody>
               {jobs.map((job) => (
                 <tr key={job.id}>
-                  <td>{job.company}</td>
-                  <td>{job.position}</td>
-                  <td>{job.status}</td>
-                  <td>{job.date_applied}</td>
-                  <td>{job.notes}</td>
-                  <td>
-                    <button onClick={() => handleDelete(job.id)}>Delete</button>
-                  </td>
+                  {editingJob === job.id ? (
+                    <>
+                      <td>
+                        <input
+                          type="text"
+                          name="company"
+                          value={editedJobData.company}
+                          onChange={handleEditChange}
+                        />
+                      </td>
+                      <td>
+                        <input
+                          type="text"
+                          name="position"
+                          value={editedJobData.position}
+                          onChange={handleEditChange}
+                        />
+                      </td>
+                      <td>
+                        <select
+                          name="status"
+                          value={editedJobData.status}
+                          onChange={handleEditChange}
+                        >
+                          <option value="Applied">Applied</option>
+                          <option value="Interview">Interview</option>
+                          <option value="Offer">Offer</option>
+                          <option value="Rejected">Rejected</option>
+                        </select>
+                      </td>
+                      <td>
+                        <input
+                          type="date"
+                          name="date_applied"
+                          value={editedJobData.date_applied}
+                          onChange={handleEditChange}
+                        />
+                      </td>
+                      <td>
+                        <input
+                          type="text"
+                          name="notes"
+                          value={editedJobData.notes}
+                          onChange={handleEditChange}
+                        />
+                      </td>
+                      <td>
+                        <button onClick={handleEditSubmit}>Save</button>
+                        <button onClick={() => setEditingJob(null)}>Cancel</button>
+                      </td>
+                    </>
+                  ) : (
+                    <>
+                      <td>{job.company}</td>
+                      <td>{job.position}</td>
+                      <td>{job.status}</td>
+                      <td>{job.date_applied}</td>
+                      <td>{job.notes}</td>
+                      <td>
+                        <button onClick={() => handleEditClick(job)}>Edit</button>
+                        <button onClick={() => handleDelete(job.id)}>Delete</button>
+                      </td>
+                    </>
+                  )}
                 </tr>
               ))}
             </tbody>

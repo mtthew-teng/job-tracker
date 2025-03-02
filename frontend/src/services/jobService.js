@@ -40,3 +40,17 @@ export const deleteJob = async (jobId, token) => {
         throw error.response ? error.response.data : { detail: "Failed to delete job" };
     }
 }
+
+export const updateJob = async (jobId, jobData, token) => {
+    try {
+        const response = await axios.put(`${API_URL}${jobId}`, jobData, {
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+            },
+        });
+        return response.data;
+    } catch (error) {
+        throw error.response ? error.response.data : { detail: "Failed to update job" };
+    }
+}
