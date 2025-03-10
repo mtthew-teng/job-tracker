@@ -1,52 +1,63 @@
 import React, { useState } from "react";
+import { Form, Button, Card, Alert, Container } from "react-bootstrap";
+import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import { login } from "../services/authService";
 
-function LoginPage() {
-    const [email, setEmail] = useState("");
-    const [password, setPassword] = useState("");
-    const [error, setError] = useState(null);
-    const navigate = useNavigate();
+const Login = () => {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
-    const handleLogin = async (e) => {
-        e.preventDefault();
-        setError(null);
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    setError(null);
 
-        try {
-            const data = await login(email, password);
-            localStorage.setItem("token", data.access_token);
-            navigate("/dashboard")
-        } catch (err) {
-            setError(err.detail || "Login failed");
-        }
+    if (!email || !password) {
+      setError("Both fields are required.");
+      return;
     }
-    return (
-        <div>
-            <h1>Login</h1>
-            {error && <p style={{ color: "red" }}>{error}</p>}
-            <form onSubmit={handleLogin}>
-                <div>
-                    <label>Email:</label>
-                    <input 
-                        type="email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        required
-                    />
-                </div>
-                <div>
-                <label>Password:</label>
-                    <input 
-                        type="password"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        required
-                    />
-                </div>
-                <button type="submit">Login</button>
-            </form>
-        </div>
-    );
-}
 
-export default LoginPage;
+    setLoading(true);
+    try {
+      const response = await axios.post("http://127.0.0.1:8000/auth/login", new URLSearchParams({
+        username: email,
+        password: password,
+      }));
+
+      localStorage.setItem("token", response.data.access_token);
+      navigate("/dashboard");
+    } catch (err) {
+      setError(err.response?.data?.detail || "Login failed.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <Container className="d-flex justify-content-center align-items-center vh-100">
+      <Card style={{ width: "25rem" }}>
+        <Card.Body>
+          <h2 className="text-center mb-4">Login</h2>
+          {error && <Alert variant="danger">{error}</Alert>}
+          <Form onSubmit={handleLogin}>
+            <Form.Group className="mb-3">
+              <Form.Label>Email</Form.Label>
+              <Form.Control type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+            </Form.Group>
+            <Form.Group className="mb-3">
+              <Form.Label>Password</Form.Label>
+              <Form.Control type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
+            </Form.Group>
+            <Button variant="primary" type="submit" className="w-100" disabled={loading}>
+              {loading ? "Logging in..." : "Login"}
+            </Button>
+          </Form>
+        </Card.Body>
+      </Card>
+    </Container>
+  );
+};
+
+export default Login;
